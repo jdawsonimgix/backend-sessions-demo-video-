@@ -27,20 +27,22 @@ app.get("/", (req, res) => {
 });
 
 //Start a session.
-app.post("/startImgixSession", upload.single("pic"), async (req, res) => {
-  const file = req.file;
+app.post("/startImgixSession", async (req, res) => {
+  // const file = req.file;
   //console.log(file.originalname);
 
   var config = {
     method: "post",
     url:
       `https://api.imgix.com/api/v1/sources/62e31fcb03d7afea23063596/upload-sessions/` +
-      file.originalname,
+      req.body.originalname,
     headers: {
       Authorization: "Bearer " + process.env.IMGIX_API,
-      "Content-Type": file.mimetype,
+      "Content-Type": req.body.mimetype,
     },
   };
+
+  console.log(config);
 
   let final = await axios(config)
     .then(function (response) {
@@ -48,32 +50,33 @@ app.post("/startImgixSession", upload.single("pic"), async (req, res) => {
       return response.data;
     })
     .catch(function (error) {
-      console.log(error);
+      console.log("here:" + error);
       return error;
     });
 
-  var configTwo = {
-    method: "put",
-    url: final.data.attributes.url,
-    headers: {
-      "Content-Type": file.mimetype,
-    },
-    data: req.file.buffer,
-  };
+  // var configTwo = {
+  //   method: "put",
+  //   url: final.data.attributes.url,
+  //   headers: {
+  //     "Content-Type": req.body.mimetype,
+  //   },
+  // };
 
-  let finalPost = await axios(configTwo)
-    .then(function (response) {
-      console.log("Axios call in /postSession");
-    })
-    .catch(function (error) {
-      console.log(error);
-    });
+  // let finalPost = await axios(configTwo)
+  //   .then(function (response) {
+  //     console.log("Axios call in /postSession");
+  //   })
+  //   .catch(function (error) {
+  //     console.log(error);
+  //   });
+
+  console.log(final.data);
 
   let trueFinal = {
     sessionIdBackend: final.data.attributes.id,
     sessionStatusBackend: final.data.attributes.status,
     sessionPresignedUrlBackend: final.data.attributes.url,
-    sessionFilenameBackend: file.originalname,
+    sessionFilenameBackend: req.body.originalname,
   };
   return res.status(200).send(trueFinal);
 });
@@ -123,6 +126,7 @@ app.post("/checkImgixCloseSession", async (req, res) => {
 
   let final = await axios(config)
     .then(function (response) {
+      console.log(response.data.data.attributes);
       console.log("Axios call in /checkImgixCloseSession");
       return response.data;
     })
