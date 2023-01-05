@@ -70,8 +70,6 @@ app.post("/startImgixSession", async (req, res) => {
   //     console.log(error);
   //   });
 
-  console.log(final.data);
-
   let trueFinal = {
     sessionIdBackend: final.data.attributes.id,
     sessionStatusBackend: final.data.attributes.status,
@@ -106,6 +104,7 @@ app.post("/checkImgixSessionStatus", async (req, res) => {
       console.log(error);
       return error;
     });
+  console.log(final);
   return res.status(200).send(final);
 });
 
@@ -135,6 +134,36 @@ app.post("/checkImgixCloseSession", async (req, res) => {
       return error;
     });
   return res.status(200).send(final);
+});
+
+app.post("/checkVideoProcessStatus", async (req, res) => {
+  console.log("Axios call in /checkVideoProcessStatus");
+  const fileNameFrontend = req.body;
+  const fileNameString = fileNameFrontend.toString();
+
+  var config = {
+    method: "get",
+    url:
+      "https://api.imgix.com/api/v1/assets/62e31fcb03d7afea23063596/" +
+      fileNameString,
+    headers: {
+      Authorization: "Bearer " + process.env.IMGIX_API,
+      "Content-Type": "video/mp4",
+    },
+  };
+
+  let allAttributes = await axios(config)
+    .then(function (response) {
+      console.log("Axios call in /checkVideoProcessStatus");
+      return response.data;
+    })
+    .catch(function (error) {
+      console.log(error);
+      return error;
+    });
+
+  let returnedVideoStatus = allAttributes.data.attributes.video_imgix_status;
+  return res.status(200).send(returnedVideoStatus);
 });
 
 app.listen(port, () => {
